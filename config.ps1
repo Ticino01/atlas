@@ -1,8 +1,8 @@
-# Atlas configuration
+
 
 
 $Config = @{
-    # Where the SQLite database lives
+  
     DatabasePath = "$env:LOCALAPPDATA\PATH TO Database"
 
 
@@ -10,11 +10,10 @@ $Config = @{
         [Environment]::GetFolderPath('MyDocuments')
         [Environment]::GetFolderPath('Desktop')
         "$env:USERPROFILE\Downloads"
-        # Add specific OneDrive subfolders here if you want them indexed
-        # Example: "$env:OneDriveCommercial\Projekte"
+       
     )
 
-    # File extensions to index
+ 
     FileExtensions = @(
         '.docx', '.doc', '.xlsx', '.xls', '.pptx', '.ppt'
         '.pdf', '.txt', '.md', '.rtf'
@@ -23,16 +22,16 @@ $Config = @{
         '.csv', '.zip'
     )
 
-    # Skip these folder names anywhere in path
+   
     FileSkipFolders = @('node_modules', '.git', 'bin', 'obj', '__pycache__', '.venv')
 
-    # How many days back to index Outlook emails
+   
     EmailDaysBack = 90
 
-    # Safety cap per Outlook folder
+
     EmailMaxItems = 5000
 
-    # Ranking weights
+    
     Weights = @{
         TextMatch    = 1.0
         Recency      = 0.5
@@ -40,6 +39,6 @@ $Config = @{
         ExactPrefix  = 2.0
     }
 
-    # Number of results in the picker
+ 
     MaxResults = 30
 }
