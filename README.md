@@ -18,8 +18,8 @@
 - **File Search** — Searches your Documents, Desktop and Downloads folders
 - **Chrome Integration** — Search your browser history and bookmarks
 - **Obsidian** — Search your Obsidian vault notes in real time
-- **Notion** — Search your Notion pages via the Notion API
-- **Type Filters** — Filter by source with `@chrome`, `@obsidian`, `@notion`, `@files`
+- **Notion** — Search your Notion pages via the Notion API (it will be added in the next Version)
+- **Type Filters** — Filter by source with `@web`, `@obsidian`, `@notion`, `@files`
 - **Dark Theme** — Beautiful Catppuccin Mocha dark UI
 - **Fast** — 200ms debounced search, local SQLite index
 - **Auto Re-index** — Task Scheduler re-indexes every 30 minutes in the background
@@ -79,13 +79,13 @@ atlas/
 ├── index-chrome.ps1      # Chrome history & bookmarks indexer
 ├── index-files.ps1       # File system indexer (incremental)
 ├── index-obsidian.ps1    # Obsidian vault indexer
-├── index-notion.ps1      # Notion API indexer
+├── index-notion.ps1      # Notion API indexer >> next Update will be added.
 ├── index-recent.ps1      # Windows Recent Documents indexer
 ├── lib-search.ps1        # Search engine & query parser
 ├── lib-log.ps1           # Shared logging library
 ├── lib-incremental.ps1   # Incremental indexing logic
 ├── config.ps1            # Configuration (paths, settings)
-├── secrets.example.ps1   # Token template (copy as secrets.ps1)
+├── secrets.example.ps1   # Token template (copy as secrets.ps1) >> Is not working now, it will developed in the next updates. 
 └── quickopen.ps1         # Fallback UI (no WPF)
 ```
 
@@ -116,7 +116,7 @@ atlas/
 | Filter | Description |
 |--------|-------------|
 | `@files` | Search only files |
-| `@chrome` | Search Chrome history & bookmarks |
+| `@web` | Search Chrome history & bookmarks |
 | `@obsidian` | Search Obsidian notes |
 | `@notion` | Search Notion pages |
 | `@recent` | Search recent documents |
