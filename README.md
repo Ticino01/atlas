@@ -153,7 +153,3 @@ IT Apprentice @ bossinfo.ch AG
 Switzerland
 
 ---
-
-## 📄 License
-
-MIT License — feel free to use and adapt.
