@@ -1,15 +1,4 @@
-<#
-.SYNOPSIS
-    Atlas - Search logic library.
-.DESCRIPTION
-    Reusable search and ranking functions. Used by both the legacy
-    quickopen.ps1 and the new WPF UI (atlas-ui.ps1).
-    
-    Dot-source this AFTER lib-log.ps1 and config.ps1.
-    Requires $script:dbPath to be set by the caller.
-#>
 
-# Type-icon mapping
 $script:TypeIcons = @{
     'file'     = 'FILE'
     'history'  = 'WEB '
@@ -44,12 +33,6 @@ function Get-AtlasTypeIcon {
 }
 
 function Parse-AtlasQuery {
-    <#
-    .SYNOPSIS
-        Splits a query into type filter and remaining text.
-    .OUTPUTS
-        @{ Type = 'file'|null ; CleanQuery = 'remaining text' }
-    #>
     param([string]$Query)
 
     $trimmed = $Query.Trim()
@@ -75,16 +58,7 @@ function Test-AtlasIsUrl {
 }
 
 function Search-AtlasIndex {
-    <#
-    .SYNOPSIS
-        Searches the index, returns ranked results.
-    .PARAMETER Query
-        Free-text search string.
-    .PARAMETER TypeFilter
-        Optional record type to restrict results.
-    .PARAMETER MaxResults
-        Maximum results to return.
-    #>
+  
     param(
         [string]$Query,
         [string]$TypeFilter,
@@ -189,11 +163,7 @@ LIMIT $MaxResults;
 }
 
 function Invoke-AtlasAction {
-    <#
-    .SYNOPSIS
-        Executes the action for a chosen record (open file, URL, etc.)
-        and records the pick for frequency learning.
-    #>
+  
     param($Record)
 
     $action = $Record.ActionData | ConvertFrom-Json
@@ -228,7 +198,7 @@ function Invoke-AtlasAction {
         }
     }
 
-    # Record the pick
+   
     $now = [int][double]::Parse((Get-Date -UFormat %s))
     Invoke-SqliteQuery -DataSource $script:dbPath `
         -Query "INSERT INTO picks (record_id, picked_at) VALUES (@id, @t)" `
