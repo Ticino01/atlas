@@ -1,16 +1,3 @@
-<#
-.SYNOPSIS
-    Atlas - Indexes Windows Recent Documents. Incremental by default.
-.DESCRIPTION
-    Reads .lnk shortcuts from %APPDATA%\Microsoft\Windows\Recent
-    and resolves them to actual targets.
-    
-    Performance optimizations:
-    - Incremental: only re-processes .lnk files modified since last run
-    - Test-Path with timeout: avoids hanging on offline network paths
-.PARAMETER Full
-    Force a full re-scan, ignoring last-run timestamp.
-#>
 
 param(
     [switch]$Full
@@ -66,12 +53,7 @@ INSERT INTO records (id, type, title, subtitle, searchable, timestamp, action_da
 VALUES (@id, 'recent', @title, @subtitle, @searchable, @timestamp, @action, @now);
 "@
 
-# ----------------------------------------------------------------------
-# Fast path-existence check.
-# Local paths return instantly via Test-Path.
-# Network paths (\\server\share\...) can hang for tens of seconds,
-# so we use a background job with a hard timeout.
-# ----------------------------------------------------------------------
+
 function Test-PathFast {
     param(
         [string]$Path,
@@ -132,7 +114,7 @@ foreach ($lnk in $lnkFiles) {
             continue
         }
 
-        # Fast existence check with hard timeout for network paths
+        
         if (-not (Test-PathFast -Path $targetPath -TimeoutSeconds 1)) {
             $skipped++
             continue
@@ -182,7 +164,7 @@ foreach ($lnk in $lnkFiles) {
 
 [System.Runtime.Interopservices.Marshal]::ReleaseComObject($shell) | Out-Null
 
-# GC only on full runs
+
 if (-not $incremental) {
     $staleCount = (Invoke-SqliteQuery -DataSource $script:dbPath `
         -Query "SELECT COUNT(*) AS n FROM records WHERE type = 'recent' AND indexed_at < @now" `
