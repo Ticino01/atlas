@@ -1,13 +1,11 @@
 # Atlas configuration
-# Loaded via dot-sourcing - all variables become available afterwards.
+
 
 $Config = @{
     # Where the SQLite database lives
-    DatabasePath = "$env:LOCALAPPDATA\Atlas\index.db"
+    DatabasePath = "$env:LOCALAPPDATA\PATH TO Database"
 
-    # Folders to index for files.
-    # Using GetFolderPath() so OneDrive redirection is handled automatically -
-    # it returns the actual current path whether the folder is local or in OneDrive.
+
     FileFolders = @(
         [Environment]::GetFolderPath('MyDocuments')
         [Environment]::GetFolderPath('Desktop')
