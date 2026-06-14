@@ -4,11 +4,6 @@
 
 ---
 
-## 📸 Screenshot
-
-<img width="702" height="503" alt="image" src="https://github.com/user-attachments/assets/5c810692-9660-4158-8d14-df5dd784ada7" />
-
-
 
 ---
 
