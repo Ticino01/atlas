@@ -1,13 +1,4 @@
-<#
-.SYNOPSIS
-    Atlas - Universal search across files, browser history, bookmarks, recent docs.
-.DESCRIPTION
-    Features:
-    - Type filters: prefix query with @file, @web, @bookmark, @recent
-      Examples: '@file budget'  '@web github'  '@bookmark'
-    - URL direct-open: paste a full URL to open it immediately
-    - Type-specific icons in the picker for visual scanning
-#>
+
 
 $ErrorActionPreference = 'Stop'
 
@@ -29,9 +20,7 @@ if (-not (Test-Path $dbPath)) {
     exit 1
 }
 
-# ----------------------------------------------------------------------
-# Type-icon mapping - shown in the picker for fast visual scanning
-# ----------------------------------------------------------------------
+
 $TypeIcons = @{
     'file'     = 'FILE'
     'history'  = 'WEB '
@@ -42,9 +31,7 @@ $TypeIcons = @{
     'event'    = 'CAL '
 }
 
-# ----------------------------------------------------------------------
-# Map @-prefix filters to record types
-# ----------------------------------------------------------------------
+
 $TypeFilters = @{
     '@file'     = 'file'
     '@files'    = 'file'
@@ -55,10 +42,7 @@ $TypeFilters = @{
     '@recent'   = 'recent'
 }
 
-# ----------------------------------------------------------------------
-# Parse query for type filter prefix
-# Returns: hashtable @{ Type = 'file'|null; CleanQuery = 'remaining text' }
-# ----------------------------------------------------------------------
+
 function Parse-Query {
     param([string]$Query)
 
@@ -79,17 +63,13 @@ function Parse-Query {
     }
 }
 
-# ----------------------------------------------------------------------
-# Detect: did the user paste a URL?
-# ----------------------------------------------------------------------
+
 function Test-IsUrl {
     param([string]$Query)
     return ($Query -match '^https?://\S+$')
 }
 
-# ----------------------------------------------------------------------
-# Search the index
-# ----------------------------------------------------------------------
+
 function Search-Index {
     param(
         [string]$Query,
@@ -101,13 +81,13 @@ function Search-Index {
     $whereClauses = @()
     $params = @{}
 
-    # Apply type filter if present
+ 
     if ($TypeFilter) {
         $whereClauses += "r.type = @typeFilter"
         $params['typeFilter'] = $TypeFilter
     }
 
-    # Apply text search if there's actual query text
+  
     if (-not [string]::IsNullOrWhiteSpace($Query)) {
         $words = $Query -split '\s+' | Where-Object { $_ }
         $i = 0
@@ -120,7 +100,6 @@ function Search-Index {
     }
 
     if ($whereClauses.Count -gt 0) {
-        # Filtered query
         $whereSql = $whereClauses -join ' AND '
         $sql = @"
 SELECT r.id, r.type, r.title, r.subtitle, r.timestamp, r.action_data,
@@ -131,7 +110,6 @@ LIMIT 200;
 "@
     }
     else {
-        # No query at all - show top picks + recently modified
         $sql = @"
 SELECT r.id, r.type, r.title, r.subtitle, r.timestamp, r.action_data,
        (SELECT COUNT(*) FROM picks p WHERE p.record_id = r.id) AS pick_count
@@ -155,32 +133,30 @@ LIMIT $($config.MaxResults);
 
     if (-not $rows) { return @() }
 
-    # ------------------------------------------------------------------
-    # Re-rank with composite scoring
-    # ------------------------------------------------------------------
+  
     $queryLower = $Query.ToLower()
     $words = $queryLower -split '\s+' | Where-Object { $_ }
 
     $scored = foreach ($row in $rows) {
         $titleLower = $row.title.ToLower()
 
-        # Text-match: how many query words appear in title (most important)
+      
         $titleHits = 0
         foreach ($w in $words) {
             if ($titleLower.Contains($w)) { $titleHits++ }
         }
         $textScore = if ($words.Count -gt 0) { $titleHits / [double]$words.Count } else { 0.5 }
 
-        # Recency: exponential decay over 30 days
+     
         $ageDays = if ($row.timestamp) {
             ($now - $row.timestamp) / 86400.0
         } else { 365 }
         $recencyScore = [Math]::Exp(-$ageDays / 30.0)
 
-        # Frequency: log of pick count
+     
         $freqScore = [Math]::Log(1 + $row.pick_count)
 
-        # Exact prefix bonus
+    
         $prefixBonus = if ($queryLower -and $titleLower.StartsWith($queryLower)) { 1.0 } else { 0.0 }
 
         $total = ($weights.TextMatch   * $textScore) +
@@ -201,9 +177,7 @@ LIMIT $($config.MaxResults);
     return $scored | Sort-Object Score -Descending | Select-Object -First $config.MaxResults
 }
 
-# ----------------------------------------------------------------------
-# Action dispatcher: open the chosen result
-# ----------------------------------------------------------------------
+
 function Invoke-Action {
     param($Record)
 
@@ -243,16 +217,14 @@ function Invoke-Action {
         }
     }
 
-    # Record the pick - feeds into frequency ranking
+  
     $now = [int][double]::Parse((Get-Date -UFormat %s))
     Invoke-SqliteQuery -DataSource $dbPath `
         -Query "INSERT INTO picks (record_id, picked_at) VALUES (@id, @t)" `
         -SqlParameters @{ id = $Record.Id; t = $now }
 }
 
-# ----------------------------------------------------------------------
-# UI: prompt - parse - search - dispatch
-# ----------------------------------------------------------------------
+
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName Microsoft.VisualBasic
 
@@ -277,14 +249,13 @@ if ($null -eq $query -or [string]::IsNullOrWhiteSpace($query)) {
     exit 0
 }
 
-# URL direct-open: skip the picker entirely
+
 if (Test-IsUrl -Query $query) {
     Write-AtlasLog -Component 'search' -Level INFO -Message "Direct URL open: $query"
     Start-Process $query
     exit 0
 }
 
-# Parse type filter from query
 $parsed = Parse-Query -Query $query
 $typeFilter = $parsed.Type
 $cleanQuery = $parsed.CleanQuery
@@ -300,7 +271,6 @@ if (-not $results -or $results.Count -eq 0) {
     exit 0
 }
 
-# Format for picker with icons
 $display = $results | ForEach-Object {
     $icon = if ($TypeIcons.ContainsKey($_.Type)) { $TypeIcons[$_.Type] } else { '???' }
 
