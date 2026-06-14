@@ -1,11 +1,4 @@
-<#
-.SYNOPSIS
-    Atlas - Spotlight-style search UI with live search.
 
-.NOTES
-    Updated: Added support for @obsidian and @notion type filters.
-    Module: M431 - Auftraege im eigenen Berufsumfeld selbststaendig durchfuehren
-#>
 
 $ErrorActionPreference = 'Stop'
 
@@ -175,10 +168,6 @@ $searchBox.Add_TextChanged({
     $searchTimer.Start()
 })
 
-# ----------------------------------------------------------------------
-# FIX: Action runs BEFORE closing window. Closing first sometimes
-# aborts the script before Invoke-AtlasAction completes.
-# ----------------------------------------------------------------------
 function Open-Selected {
     $query = $searchBox.Text
 
@@ -197,9 +186,7 @@ function Open-Selected {
     $selected = $resultsList.SelectedItem
     if ($null -eq $selected) { return }
 
-    # Execute the action FIRST, while the window is still alive.
-    # Otherwise closing can abort the PowerShell script before
-    # Start-Process even runs.
+
     try {
         Invoke-AtlasAction -Record $selected
     }
@@ -208,7 +195,7 @@ function Open-Selected {
         [System.Windows.MessageBox]::Show("Konnte Aktion nicht ausfuehren:`n$_") | Out-Null
     }
 
-    # NOW close the window
+  
     $window.Close()
 }
 
@@ -246,10 +233,6 @@ $resultsList.Add_MouseDoubleClick({
     Open-Selected
 })
 
-# REMOVED: Add_Deactivated handler.
-# It was closing the window the moment focus moved to the launched app,
-# which could cancel the PowerShell script before the action completed.
-# Now the user closes with Esc or after the action runs.
 
 $window.Add_Loaded({
     Update-Results

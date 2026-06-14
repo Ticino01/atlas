@@ -1,17 +1,4 @@
-<#
-.SYNOPSIS
-    Atlas - Indexes files from configured folders. Incremental by default.
-.DESCRIPTION
-    Two modes:
-    - Incremental (default): only files modified since last run are re-indexed.
-      Much faster on subsequent runs.
-    - Full: scans everything. Use -Full or run after schema/config changes.
-.PARAMETER Full
-    Forces a full re-scan, ignoring the last-run timestamp.
-.EXAMPLE
-    .\index-files.ps1
-    .\index-files.ps1 -Full
-#>
+
 
 param(
     [switch]$Full
@@ -62,15 +49,14 @@ $indexed = 0
 $skipped = 0
 $errors = 0
 
-# DELETE-then-INSERT (compatible with older SQLite)
+
 $insertQuery = @"
 DELETE FROM records WHERE id = @id;
 INSERT INTO records (id, type, title, subtitle, searchable, timestamp, action_data, indexed_at)
 VALUES (@id, 'file', @title, @subtitle, @searchable, @timestamp, @action, @now);
 "@
 
-# In incremental mode, also track which files we saw so we can detect deletions
-# (only if doing a full run - in incremental we don't trust the file list to be complete)
+
 $seenIds = @{}
 
 foreach ($folder in $config.FileFolders) {

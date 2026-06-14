@@ -1,7 +1,4 @@
-<#
-.SYNOPSIS
-    Indexes Outlook emails, contacts, and calendar events.
-#>
+
 
 $ErrorActionPreference = 'Stop'
 

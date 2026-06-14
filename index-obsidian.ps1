@@ -1,17 +1,4 @@
-<#
-.SYNOPSIS
-    Atlas - Obsidian Indexer.
 
-.DESCRIPTION
-    Indexes all Markdown notes from an Obsidian vault into the Atlas
-    database. Parses YAML frontmatter (tags, aliases), extracts inline
-    tags (#tag) and Wiki-Links ([[Note]]) for richer search.
-
-.NOTES
-    Module: M431 - Auftraege im eigenen Berufsumfeld selbststaendig durchfuehren
-    Autor:  Abbas Ehsani
-    Datum:  Mai 2026
-#>
 
 $ErrorActionPreference = 'Stop'
 
@@ -25,11 +12,10 @@ Import-Module PSSQLite
 . "$PSScriptRoot\config.ps1"
 $config = $Config
 
-# Vault-Pfad: aus Config lesen, sonst Default
 $VaultPath = if ($config.ObsidianVault) {
     $config.ObsidianVault
 } else {
-    "C:\Users\aehsani\OneDrive - bossinfo.ch AG\Dokumente\Obsidian\Abbas"
+    "Path to Obsidian"
 }
 
 $DbPath = $config.DatabasePath
@@ -42,12 +28,12 @@ if (-not (Test-Path $VaultPath)) {
     exit 1
 }
 
-# Bestehende Obsidian-Eintraege loeschen (Voll-Reindex)
+
 Invoke-SqliteQuery -DataSource $DbPath -Query "DELETE FROM records WHERE type = 'obsidian'" | Out-Null
 
 $mdFiles = Get-ChildItem -Path $VaultPath -Filter "*.md" -Recurse -File -ErrorAction SilentlyContinue
 
-# .obsidian-Ordner und Trash ausschliessen
+
 $mdFiles = $mdFiles | Where-Object {
     $_.FullName -notmatch '\\\.obsidian\\' -and
     $_.FullName -notmatch '\\\.trash\\'
@@ -62,15 +48,15 @@ foreach ($file in $mdFiles) {
     try {
         $content = Get-Content -Path $file.FullName -Raw -Encoding UTF8 -ErrorAction Stop
 
-        # Titel ist der Dateiname ohne .md
+      
         $title = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
 
-        # Relativer Pfad als Subtitle (zeigt Ordner-Struktur)
+      
         $relativePath = $file.FullName.Substring($VaultPath.Length).TrimStart('\')
         $folder = Split-Path $relativePath -Parent
         $subtitle = if ($folder) { "Obsidian / $folder" } else { "Obsidian" }
 
-        # YAML-Frontmatter parsen (zwischen --- am Anfang)
+      
         $frontmatterTags = @()
         $frontmatterAliases = @()
 
@@ -88,17 +74,17 @@ foreach ($file in $mdFiles) {
             }
         }
 
-        # Inline-Tags wie #tagname extrahieren
+       
         $inlineTags = [regex]::Matches($content, '(?<![\w/])#([a-zA-Z][\w/-]*)') |
                       ForEach-Object { $_.Groups[1].Value } |
                       Select-Object -Unique
 
-        # Wiki-Links wie [[Andere Notiz]] extrahieren
+       
         $wikiLinks = [regex]::Matches($content, '\[\[([^\]|]+?)(?:\|[^\]]+)?\]\]') |
                      ForEach-Object { $_.Groups[1].Value } |
                      Select-Object -Unique
 
-        # Erste 200 Zeichen Plaintext fuer Vorschau
+       
         $plainContent = $content -replace '(?ms)^---.*?---\s*', ''
         $plainContent = $plainContent -replace '#+\s*', ''
         $plainContent = $plainContent -replace '\[\[([^\]|]+?)(?:\|([^\]]+))?\]\]', '$1$2'
@@ -109,7 +95,7 @@ foreach ($file in $mdFiles) {
             $plainContent = $plainContent.Substring(0, 200)
         }
 
-        # Searchable Text zusammenbauen: Titel + Aliases + Tags + Wiki-Links + Vorschau
+     
         $searchableParts = @($title) + $frontmatterAliases + $frontmatterTags + $inlineTags + $wikiLinks + @($plainContent)
         $searchable = ($searchableParts -join ' ').ToLower()
 
@@ -136,7 +122,6 @@ VALUES ('obsidian', @title, @subtitle, @searchable, @timestamp, @action, @indexe
     }
 }
 
-# indexer_runs aktualisieren
 $now = [int][double]::Parse((Get-Date -UFormat %s))
 Invoke-SqliteQuery -DataSource $DbPath -Query @"
 INSERT OR REPLACE INTO indexer_runs (indexer_name, last_run, item_count)

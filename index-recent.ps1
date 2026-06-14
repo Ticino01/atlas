@@ -1,16 +1,3 @@
-<#
-.SYNOPSIS
-    Atlas - Indexes Windows Recent Documents. Incremental by default.
-.DESCRIPTION
-    Reads .lnk shortcuts from %APPDATA%\Microsoft\Windows\Recent
-    and resolves them to actual targets.
-    
-    Performance optimizations:
-    - Incremental: only re-processes .lnk files modified since last run
-    - Test-Path with timeout: avoids hanging on offline network paths
-.PARAMETER Full
-    Force a full re-scan, ignoring last-run timestamp.
-#>
 
 param(
     [switch]$Full
@@ -66,12 +53,7 @@ INSERT INTO records (id, type, title, subtitle, searchable, timestamp, action_da
 VALUES (@id, 'recent', @title, @subtitle, @searchable, @timestamp, @action, @now);
 "@
 
-# ----------------------------------------------------------------------
-# Fast path-existence check.
-# Local paths return instantly via Test-Path.
-# Network paths (\\server\share\...) can hang for tens of seconds,
-# so we use a background job with a hard timeout.
-# ----------------------------------------------------------------------
+
 function Test-PathFast {
     param(
         [string]$Path,
@@ -80,12 +62,12 @@ function Test-PathFast {
 
     if (-not $Path) { return $false }
 
-    # Local path - instant
+    
     if ($Path -notmatch '^\\\\') {
         return Test-Path -LiteralPath $Path -ErrorAction SilentlyContinue
     }
 
-    # Network path - use a job with timeout
+ 
     $job = Start-Job -ScriptBlock {
         param($p)
         Test-Path -LiteralPath $p -ErrorAction SilentlyContinue
@@ -117,8 +99,6 @@ Write-AtlasLog -Component 'index-recent' -Level INFO -Message "Found $($lnkFiles
 
 foreach ($lnk in $lnkFiles) {
     try {
-        # Incremental: skip .lnk files unchanged since last run
-        # Windows updates a .lnk's LastWriteTime each time you open the target
         if ($incremental -and $lnk.LastWriteTime -le $lastRunDate) {
             $unchanged++
             continue
@@ -132,13 +112,13 @@ foreach ($lnk in $lnkFiles) {
             continue
         }
 
-        # Fast existence check with hard timeout for network paths
+        
         if (-not (Test-PathFast -Path $targetPath -TimeoutSeconds 1)) {
             $skipped++
             continue
         }
 
-        # Skip folders - we want files only
+     
         $item = Get-Item -LiteralPath $targetPath -ErrorAction SilentlyContinue
         if (-not $item -or $item.PSIsContainer) {
             $skipped++
@@ -182,7 +162,7 @@ foreach ($lnk in $lnkFiles) {
 
 [System.Runtime.Interopservices.Marshal]::ReleaseComObject($shell) | Out-Null
 
-# GC only on full runs
+
 if (-not $incremental) {
     $staleCount = (Invoke-SqliteQuery -DataSource $script:dbPath `
         -Query "SELECT COUNT(*) AS n FROM records WHERE type = 'recent' AND indexed_at < @now" `

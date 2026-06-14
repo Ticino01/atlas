@@ -1,4 +1,4 @@
-; Atlas - Universal Search Hotkey
+
 
 #NoEnv
 #SingleInstance Force
