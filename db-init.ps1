@@ -1,10 +1,3 @@
-<#
-.SYNOPSIS
-    Initializes the Atlas SQLite database.
-.DESCRIPTION
-    Creates the index.db file with all required tables.
-    Safe to re-run - uses CREATE TABLE IF NOT EXISTS.
-#>
 
 $ErrorActionPreference = 'Stop'
 
