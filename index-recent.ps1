@@ -62,12 +62,12 @@ function Test-PathFast {
 
     if (-not $Path) { return $false }
 
-    # Local path - instant
+    
     if ($Path -notmatch '^\\\\') {
         return Test-Path -LiteralPath $Path -ErrorAction SilentlyContinue
     }
 
-    # Network path - use a job with timeout
+ 
     $job = Start-Job -ScriptBlock {
         param($p)
         Test-Path -LiteralPath $p -ErrorAction SilentlyContinue
@@ -99,8 +99,6 @@ Write-AtlasLog -Component 'index-recent' -Level INFO -Message "Found $($lnkFiles
 
 foreach ($lnk in $lnkFiles) {
     try {
-        # Incremental: skip .lnk files unchanged since last run
-        # Windows updates a .lnk's LastWriteTime each time you open the target
         if ($incremental -and $lnk.LastWriteTime -le $lastRunDate) {
             $unchanged++
             continue
@@ -120,7 +118,7 @@ foreach ($lnk in $lnkFiles) {
             continue
         }
 
-        # Skip folders - we want files only
+     
         $item = Get-Item -LiteralPath $targetPath -ErrorAction SilentlyContinue
         if (-not $item -or $item.PSIsContainer) {
             $skipped++
