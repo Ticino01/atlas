@@ -1,11 +1,4 @@
-<#
-.SYNOPSIS
-    Atlas - Runs all indexers in sequence.
-.DESCRIPTION
-    Schedule this in Task Scheduler.
-    Indexer failures are isolated - one breaking won't stop the others.
-    All output goes to both console and log file.
-#>
+
 
 $ErrorActionPreference = 'Continue'
 
@@ -15,7 +8,7 @@ $ErrorActionPreference = 'Continue'
 $start = Get-Date
 Write-AtlasLog -Component 'orchestrator' -Level INFO -Message "===== Indexing run started ====="
 
-# Active indexers - add or remove as your data sources change
+
 $indexers = @(
     'index-files.ps1'
     'index-chrome.ps1'
