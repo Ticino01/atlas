@@ -186,9 +186,7 @@ function Open-Selected {
     $selected = $resultsList.SelectedItem
     if ($null -eq $selected) { return }
 
-    # Execute the action FIRST, while the window is still alive.
-    # Otherwise closing can abort the PowerShell script before
-    # Start-Process even runs.
+
     try {
         Invoke-AtlasAction -Record $selected
     }
@@ -197,7 +195,7 @@ function Open-Selected {
         [System.Windows.MessageBox]::Show("Konnte Aktion nicht ausfuehren:`n$_") | Out-Null
     }
 
-    # NOW close the window
+  
     $window.Close()
 }
 
