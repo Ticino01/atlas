@@ -29,7 +29,7 @@ $config = $Config
 $VaultPath = if ($config.ObsidianVault) {
     $config.ObsidianVault
 } else {
-    "C:\Users\aehsani\OneDrive - bossinfo.ch AG\Dokumente\Obsidian\Abbas"
+    "Path to Obsidian"
 }
 
 $DbPath = $config.DatabasePath
